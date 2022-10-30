@@ -1,0 +1,35 @@
+<resources>
+    <string name="app_name">Taller3</string>
+    <string name="app_name_logo">Taller 3</string>
+    <string name="email_string">Correo Electrónico</string>
+    <string name="password_string">Contraseña</string>
+    <string name="sign_in_string">Iniciar Sesión</string>
+    <string name="forgot_password_string">¿Olvidaste tu contraseña?</string>
+    <string name="new_account_string">¿Aún no tienes cuenta?</string>
+    <string name="exists_account_string">¿Ya tienes cuenta?</string>
+    <string name="sign_up_string">Regístrate</string>
+    <string name="logout_menu_item">LogOut</string>
+    <string name="mail_error_label">El email no puede estar vacio.</string>
+    <string name="error_pass_label">El password no puede estar vacio.</string>
+    <string name="name_error_label">El nombre no puede estar vacio.</string>
+    <string name="lastname_error_label">El apellido no puede estar vacio.</string>
+    <string name="numId_error_label">La identificación no puede estar vacio.</string>
+    <string name="image_error_label">Debe selecionar una imagen.</string>
+    <string name="success_login">Sesión iniciada correctamente</string>
+    <string name="wait_login">Autenticando usuario, espere por favor</string>
+    <string name="success_signup">Cuenta creada correctamente</string>
+    <string name="wait_signup">Estamos creando tu cuenta, espere por favor</string>
+    <string name="unknown_error">Error desconocido, intenta más tarde</string>
+    <string name="wrong_password">Las contraseñas no coinciden</string>
+    <string name="snackBar_dismiss_label">cerrar</string>
+    <string name="name_string">Nombre</string>
+    <string name="lastname_string">Apellido</string>
+    <string name="contact_image">Imagen de Contacto</string>
+    <string name="idnumber_string">Número de Identificación</string>
+    <string name="camera_string">Cámara</string>
+    <string name="gallery_string">Galería</string>
+    <string name="image_upload_success">Imágen cargada con éxito</string>
+    <string name="image_upload_error">La imágen no ha podido ser cargada</string>
+    <string name="uploading">Actualizando datos, espere por favor</string>
+
+</resources>
