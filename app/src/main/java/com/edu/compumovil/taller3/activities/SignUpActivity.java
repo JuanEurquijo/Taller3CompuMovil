@@ -9,7 +9,6 @@ import android.os.Bundle;
 import android.util.Log;
 
 import com.edu.compumovil.taller3.R;
-import com.edu.compumovil.taller3.databinding.ActivityMainBinding;
 import com.edu.compumovil.taller3.databinding.ActivitySignUpBinding;
 import com.edu.compumovil.taller3.models.database.DatabaseRoutes;
 import com.edu.compumovil.taller3.models.database.UserInfo;
