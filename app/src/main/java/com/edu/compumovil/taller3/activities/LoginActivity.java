@@ -81,7 +81,7 @@ public class LoginActivity extends Activity {
                 .addOnSuccessListener(authResult -> {
                     Log.i(TAG, "(Success) Authentication");
                     alertsHelper.shortToast(this, getString(R.string.success_login));
-                    startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                    startActivity(new Intent(LoginActivity.this, MapActivity.class));
                 })
                 .addOnFailureListener(e -> {
                     Log.i(TAG, "(Failure) Authentication");
