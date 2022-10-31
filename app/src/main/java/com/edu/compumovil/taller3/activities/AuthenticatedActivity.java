@@ -41,20 +41,4 @@ public class AuthenticatedActivity extends Activity{
         startActivity(LoginActivity.createIntent(this));
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main_menu, menu);
-        return super.onCreateOptionsMenu(menu);
-    }
-
-    @SuppressLint("NonConstantResourceId")
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        switch(item.getItemId()){
-            case R.id.logoutButton:
-                signOut();
-                break;
-        }
-        return super.onOptionsItemSelected(item);
-    }
 }

@@ -18,5 +18,5 @@ import dagger.Component;
         LocationModule.class, GeocoderModule.class, GeoInfoModule.class})
 public interface ApplicationComponent {
     void inject(Activity activity);
-    void inject(MapFragment activity);
+    void inject(MapFragment fragment);
 }

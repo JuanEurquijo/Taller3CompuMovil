@@ -28,13 +28,15 @@
             android:value="@integer/google_play_services_version" />
         <activity
             android:name=".activities.MapActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:launchMode="singleTask" />
         <activity
             android:name=".activities.SignUpActivity"
             android:exported="false" />
         <activity
             android:name=".activities.LoginActivity"
-            android:exported="true" >
+            android:exported="true"
+            android:launchMode="singleTask" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

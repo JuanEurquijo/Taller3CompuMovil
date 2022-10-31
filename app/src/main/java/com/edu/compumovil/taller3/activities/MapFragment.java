@@ -1,6 +1,8 @@
 package com.edu.compumovil.taller3.activities;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.hardware.Sensor;
@@ -12,10 +14,20 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.MenuHost;
+import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.LifecycleOwner;
 
 import android.util.Base64;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
@@ -39,6 +51,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.gson.JsonArray;
 
 import org.jetbrains.annotations.NotNull;
@@ -52,9 +65,8 @@ import java.util.List;
 import javax.inject.Inject;
 
 
-public class MapFragment extends Fragment {
+public class MapFragment extends Fragment{
 
-    FragmentMapBinding binding;
     @Inject
     GeocoderService geocoderService;
     @Inject
@@ -62,13 +74,14 @@ public class MapFragment extends Fragment {
     @Inject
     GeoInfoFromJsonService geoInfoFromJsonService;
 
+    FragmentMapBinding binding;
+
     //Map interaction variables
     GoogleMap googleMap;
     static final int INITIAL_ZOOM_LEVEL = 18;
-    private final LatLng CENTRAL_PARK = new LatLng(40.7812, -73.9665);
     Marker userPosition;
     Polyline userRoute;
-    List<Marker> places = new ArrayList<>();
+    boolean init = false;
 
     //light sensor
     SensorManager sensorManager;
@@ -86,23 +99,16 @@ public class MapFragment extends Fragment {
             googleMap.getUiSettings().setZoomGesturesEnabled(true);
             googleMap.getUiSettings().setCompassEnabled(true);
             googleMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(getContext(), R.raw.map_day_style));
-            //Setup the user marker with a default position
-            userPosition = googleMap.addMarker(new MarkerOptions()
-                    .position(CENTRAL_PARK)
-                    .icon(BitmapUtils.getBitmapDescriptor(getContext(), R.drawable.ic_baseline_circle_24))
-                    .anchor(0.5f, 0.5f)
-                    .zIndex(1.0f));
-            googleMap.moveCamera(CameraUpdateFactory.newLatLng(CENTRAL_PARK));
-            //Setup the route line
-            userRoute = googleMap.addPolyline(new PolylineOptions()
-                    .color(R.color.light_blue_400)
-                    .width(15.0f)
-                    .geodesic(true)
-                    .zIndex(0.5f));
             //Setup the rest of the markers based in a json file
-           // loadGeoInfo();
+            loadGeoInfo();
         }
     };
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+    }
 
     @Nullable
     @Override
@@ -111,8 +117,42 @@ public class MapFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         ((App) requireActivity().getApplicationContext()).getAppComponent().inject(this);
         binding = FragmentMapBinding.inflate(inflater);
+        binding.toolbar.inflateMenu(R.menu.main_menu);
+        ((AppCompatActivity) this.getActivity()).setSupportActionBar(binding.toolbar);
         return binding.getRoot();
     }
+
+    @Override
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+        inflater.inflate(R.menu.main_menu, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch(item.getItemId()){
+            case R.id.logoutButton:
+                FirebaseAuth.getInstance().signOut();
+                startActivity(new Intent(getContext(),LoginActivity.class));
+                break;
+            case R.id.status:
+                if (!item.isChecked())
+                {
+                    item.setChecked(true);
+                    alertsHelper.shortToast(getContext(),"Disponible");
+                }
+                else
+                {
+                    alertsHelper.shortToast(getContext(),"No disponible");
+                    item.setChecked(false);
+                }
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+
+
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
@@ -122,6 +162,7 @@ public class MapFragment extends Fragment {
         if (mapFragment != null) {
             mapFragment.getMapAsync(callback);
         }
+
         sensorManager = (SensorManager) getActivity().getSystemService(Context.SENSOR_SERVICE);
         lightSensor = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
         lightSensorEventListener = new SensorEventListener() {
@@ -142,11 +183,9 @@ public class MapFragment extends Fragment {
             }
         };
 
-    }
-
-    private void findPlaces(){
 
     }
+
 
     @Override
     public void onStart() {
@@ -157,32 +196,36 @@ public class MapFragment extends Fragment {
     @Override
     public void onStop() {
         super.onStop();
-        List<LatLng> points = userRoute.getPoints();
-        points.clear();
-        userRoute.setPoints(points);
     }
 
     public void updateUserPositionOnMap(@NotNull LocationResult locationResult) {
+        if (!init){
+            userPosition = googleMap.addMarker(new MarkerOptions()
+                    .position(new LatLng(locationResult.getLastLocation().getLatitude(), locationResult.getLastLocation().getLongitude()))
+                    .icon(BitmapUtils.getBitmapDescriptor(getContext(), R.drawable.ic_baseline_circle_24))
+                    .anchor(0.5f, 0.5f)
+                    .zIndex(1.0f));
+            googleMap.moveCamera(CameraUpdateFactory.zoomTo(INITIAL_ZOOM_LEVEL));
+            googleMap.animateCamera(CameraUpdateFactory.newLatLng(userPosition.getPosition()));
+            init = true;
+        }
         userPosition.setPosition(new LatLng(locationResult.getLastLocation().getLatitude(), locationResult.getLastLocation().getLongitude()));
-        List<LatLng> points = userRoute.getPoints();
-        points.add(userPosition.getPosition());
-        userRoute.setPoints(points);
 
     }
 
     private void loadGeoInfo() {
 
-            for (int i = 0; i < geoInfoFromJsonService.getLocationsArray().length(); i++){
-                try {
-                    JSONObject location = geoInfoFromJsonService.getLocationsArray().getJSONObject(i);
-                    MarkerOptions newMarker = new MarkerOptions();
-                    newMarker.position(new LatLng(location.getDouble("latitude"), location.getDouble("longitude")));
-                    newMarker.title(location.getString("name"));
-                    googleMap.addMarker(newMarker);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
+        for (int i = 0; i < geoInfoFromJsonService.getLocationsArray().length(); i++){
+            try {
+                JSONObject location = geoInfoFromJsonService.getLocationsArray().getJSONObject(i);
+                MarkerOptions newMarker = new MarkerOptions();
+                newMarker.position(new LatLng(location.getDouble("latitude"), location.getDouble("longitude")));
+                newMarker.title(location.getString("name"));
+                googleMap.addMarker(newMarker);
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
+        }
 
     }
 

@@ -2,11 +2,17 @@ package com.edu.compumovil.taller3.activities;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
+import androidx.core.view.MenuProvider;
+import androidx.lifecycle.Lifecycle;
 
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 
+import com.edu.compumovil.taller3.App;
 import com.edu.compumovil.taller3.R;
 import com.edu.compumovil.taller3.databinding.ActivityMapBinding;
 import com.edu.compumovil.taller3.utils.PermissionHelper;
@@ -15,7 +21,7 @@ import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationResult;
 import com.google.firebase.auth.FirebaseAuth;
 
-public class MapActivity extends Activity {
+public class MapActivity extends AuthenticatedActivity implements MenuProvider {
     public static final String TAG = MapActivity.class.getName();
     private ActivityMapBinding binding;
 
@@ -23,6 +29,7 @@ public class MapActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ((App) getApplicationContext()).getAppComponent().inject(this);
         binding = ActivityMapBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
@@ -41,8 +48,8 @@ public class MapActivity extends Activity {
             }
         });
 
-    }
 
+    }
 
     @Override
     protected void onStart() {
@@ -80,7 +87,7 @@ public class MapActivity extends Activity {
         builder.setPositiveButton("SI", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                FirebaseAuth.getInstance().signOut();
+                signOut();
             }
         });
 
@@ -93,5 +100,15 @@ public class MapActivity extends Activity {
 
         builder.create();
         builder.show();
+    }
+
+    @Override
+    public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
+        menuInflater.inflate(R.menu.main_menu,menu);
+    }
+
+    @Override
+    public boolean onMenuItemSelected(@NonNull MenuItem menuItem) {
+        return false;
     }
 }
