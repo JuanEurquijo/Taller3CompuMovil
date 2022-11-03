@@ -10,6 +10,7 @@
     <string name="sign_up_string">Regístrate</string>
     <string name="logout_menu_item">Cerrar Sesión</string>
     <string name="status_menu_item">Estado</string>
+    <string name="available_users_menu_item">Usuarios Disponibles</string>
     <string name="mail_error_label">El email no puede estar vacio.</string>
     <string name="error_pass_label">El password no puede estar vacio.</string>
     <string name="name_error_label">El nombre no puede estar vacio.</string>

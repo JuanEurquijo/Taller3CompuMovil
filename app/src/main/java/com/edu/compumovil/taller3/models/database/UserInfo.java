@@ -1,5 +1,7 @@
 package com.edu.compumovil.taller3.models.database;
 
+import android.net.Uri;
+
 import com.google.android.gms.maps.model.LatLng;
 
 import lombok.AllArgsConstructor;
@@ -12,6 +14,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserInfo {
+    private Uri image;
     private String name;
     private String lastname;
     private long numId;
@@ -19,4 +22,19 @@ public class UserInfo {
     private double longitude;
     private long createdAt;
     private long lastLogin;
+
+    public UserInfo(String name, String lastname, long numId, double latitude, double longitude, long createdAt, long lastLogin) {
+        this.name = name;
+        this.lastname = lastname;
+        this.numId = numId;
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.createdAt = createdAt;
+        this.lastLogin = lastLogin;
+    }
+
+    public UserInfo(String name, String lastname) {
+        this.name = name;
+        this.lastname = lastname;
+    }
 }

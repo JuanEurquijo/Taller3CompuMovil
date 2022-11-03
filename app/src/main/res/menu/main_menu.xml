@@ -6,12 +6,16 @@
         android:id="@+id/status"
         android:icon="@drawable/ic_baseline_person_24"
         android:title="@string/status_menu_item"
-        android:checkable="true"
-        app:showAsAction="always"/>
+        android:checkable="true" />
+
+    <item
+        android:id="@+id/availableUsers"
+        android:icon="@drawable/ic_baseline_person_24"
+        android:title="@string/available_users_menu_item" />
+
     <item
         android:id="@+id/logoutButton"
         android:icon="@drawable/ic_baseline_logout_24"
-        android:title="@string/logout_menu_item"
-        app:showAsAction="always"/>
+        android:title="@string/logout_menu_item" />
 
 </menu>

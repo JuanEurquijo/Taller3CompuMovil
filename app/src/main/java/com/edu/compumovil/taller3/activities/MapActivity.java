@@ -21,7 +21,7 @@ import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationResult;
 import com.google.firebase.auth.FirebaseAuth;
 
-public class MapActivity extends AuthenticatedActivity implements MenuProvider {
+public class MapActivity extends AuthenticatedActivity {
     public static final String TAG = MapActivity.class.getName();
     private ActivityMapBinding binding;
 
@@ -102,13 +102,4 @@ public class MapActivity extends AuthenticatedActivity implements MenuProvider {
         builder.show();
     }
 
-    @Override
-    public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
-        menuInflater.inflate(R.menu.main_menu,menu);
-    }
-
-    @Override
-    public boolean onMenuItemSelected(@NonNull MenuItem menuItem) {
-        return false;
-    }
 }

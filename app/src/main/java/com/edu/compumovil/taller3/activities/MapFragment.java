@@ -82,6 +82,7 @@ public class MapFragment extends Fragment{
     Marker userPosition;
     Polyline userRoute;
     boolean init = false;
+    boolean available = false;
 
     //light sensor
     SensorManager sensorManager;
@@ -146,6 +147,9 @@ public class MapFragment extends Fragment{
                     alertsHelper.shortToast(getContext(),"No disponible");
                     item.setChecked(false);
                 }
+                break;
+            case R.id.availableUsers:
+                 startActivity(new Intent(getContext(), UsersActivity.class));
                 break;
         }
         return super.onOptionsItemSelected(item);
