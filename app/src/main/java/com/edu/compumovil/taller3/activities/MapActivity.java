@@ -22,9 +22,9 @@ import com.google.android.gms.location.LocationResult;
 import com.google.firebase.auth.FirebaseAuth;
 
 public class MapActivity extends AuthenticatedActivity {
+
     public static final String TAG = MapActivity.class.getName();
     private ActivityMapBinding binding;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

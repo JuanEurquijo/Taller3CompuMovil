@@ -61,11 +61,12 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import javax.inject.Inject;
 
 
-public class MapFragment extends Fragment{
+public class MapFragment extends Fragment {
 
     @Inject
     GeocoderService geocoderService;
@@ -77,8 +78,8 @@ public class MapFragment extends Fragment{
     FragmentMapBinding binding;
 
     //Map interaction variables
-    GoogleMap googleMap;
     static final int INITIAL_ZOOM_LEVEL = 18;
+    GoogleMap googleMap;
     Marker userPosition;
     Polyline userRoute;
     boolean init = false;
@@ -90,7 +91,7 @@ public class MapFragment extends Fragment{
 
     private final OnMapReadyCallback callback = new OnMapReadyCallback() {
         @Override
-        public void onMapReady(GoogleMap map) {
+        public void onMapReady(@NonNull GoogleMap map) {
             //Setup the map
             googleMap = map;
             googleMap.moveCamera(CameraUpdateFactory.zoomTo(INITIAL_ZOOM_LEVEL));
@@ -98,7 +99,7 @@ public class MapFragment extends Fragment{
             googleMap.getUiSettings().setZoomControlsEnabled(true);
             googleMap.getUiSettings().setZoomGesturesEnabled(true);
             googleMap.getUiSettings().setCompassEnabled(true);
-            googleMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(getContext(), R.raw.map_day_style));
+            googleMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(requireContext(), R.raw.map_day_style));
             //Setup the rest of the markers based in a json file
             loadGeoInfo();
         }
@@ -118,7 +119,7 @@ public class MapFragment extends Fragment{
         ((App) requireActivity().getApplicationContext()).getAppComponent().inject(this);
         binding = FragmentMapBinding.inflate(inflater);
         binding.toolbar.inflateMenu(R.menu.main_menu);
-        ((AppCompatActivity) this.getActivity()).setSupportActionBar(binding.toolbar);
+        ((AppCompatActivity) this.requireActivity()).setSupportActionBar(binding.toolbar);
         return binding.getRoot();
     }
 
@@ -128,33 +129,29 @@ public class MapFragment extends Fragment{
         super.onCreateOptionsMenu(menu, inflater);
     }
 
+    @SuppressLint("NonConstantResourceId")
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        switch(item.getItemId()){
+        switch (item.getItemId()) {
             case R.id.logoutButton:
                 FirebaseAuth.getInstance().signOut();
-                startActivity(new Intent(getContext(),LoginActivity.class));
+                startActivity(new Intent(getContext(), LoginActivity.class));
                 break;
             case R.id.status:
-                if (!item.isChecked())
-                {
+                if (!item.isChecked()) {
                     item.setChecked(true);
-                    alertsHelper.shortToast(getContext(),"Disponible");
-                }
-                else
-                {
-                    alertsHelper.shortToast(getContext(),"No disponible");
+                    alertsHelper.shortToast(getContext(), "Disponible");
+                } else {
+                    alertsHelper.shortToast(getContext(), "No disponible");
                     item.setChecked(false);
                 }
                 break;
             case R.id.availableUsers:
-                 startActivity(new Intent(getContext(), UsersActivity.class));
+                startActivity(new Intent(getContext(), UsersActivity.class));
                 break;
         }
         return super.onOptionsItemSelected(item);
     }
-
-
 
 
     @Override
@@ -166,18 +163,20 @@ public class MapFragment extends Fragment{
             mapFragment.getMapAsync(callback);
         }
 
-        sensorManager = (SensorManager) getActivity().getSystemService(Context.SENSOR_SERVICE);
+        sensorManager = (SensorManager) requireActivity().getSystemService(Context.SENSOR_SERVICE);
         lightSensor = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
+
         lightSensorEventListener = new SensorEventListener() {
             @Override
             public void onSensorChanged(@NotNull SensorEvent sensorEvent) {
-                if (sensorEvent.values[0] > 1500) {
-                    userRoute.setColor(R.color.light_blue_400);
-                    googleMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(getContext(), R.raw.map_day_style));
-                } else {
-                    userRoute.setColor(R.color.light_blue_100);
-                    googleMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(getContext(), R.raw.map_night_style));
-                }
+                if (googleMap != null)
+                    if (sensorEvent.values[0] > 150) {
+                        userRoute.setColor(R.color.light_blue_400);
+                        googleMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(requireContext(), R.raw.map_day_style));
+                    } else {
+                        userRoute.setColor(R.color.light_blue_100);
+                        googleMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(requireContext(), R.raw.map_night_style));
+                    }
             }
 
             @Override
@@ -185,8 +184,6 @@ public class MapFragment extends Fragment{
 
             }
         };
-
-
     }
 
 
@@ -202,7 +199,7 @@ public class MapFragment extends Fragment{
     }
 
     public void updateUserPositionOnMap(@NotNull LocationResult locationResult) {
-        if (!init){
+        if (!init) {
             userPosition = googleMap.addMarker(new MarkerOptions()
                     .position(new LatLng(locationResult.getLastLocation().getLatitude(), locationResult.getLastLocation().getLongitude()))
                     .icon(BitmapUtils.getBitmapDescriptor(getContext(), R.drawable.ic_baseline_circle_24))
@@ -218,7 +215,7 @@ public class MapFragment extends Fragment{
 
     private void loadGeoInfo() {
 
-        for (int i = 0; i < geoInfoFromJsonService.getLocationsArray().length(); i++){
+        for (int i = 0; i < geoInfoFromJsonService.getLocationsArray().length(); i++) {
             try {
                 JSONObject location = geoInfoFromJsonService.getLocationsArray().getJSONObject(i);
                 MarkerOptions newMarker = new MarkerOptions();
