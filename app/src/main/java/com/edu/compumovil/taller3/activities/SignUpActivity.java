@@ -5,6 +5,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -30,16 +31,18 @@ public class SignUpActivity extends Activity {
     public static final String TAG = SignUpActivity.class.getName();
 
     private ActivitySignUpBinding binding;
+
     FirebaseAuth mAuth;
     private FirebaseDatabase mDatabase;
     private FirebaseStorage mStorage;
-    private String currentUser;
     double latitude;
     double longitude;
+    Uri imageData = null;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         binding = ActivitySignUpBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
@@ -47,8 +50,6 @@ public class SignUpActivity extends Activity {
         mAuth = FirebaseAuth.getInstance();
         mDatabase = FirebaseDatabase.getInstance();
         mStorage = FirebaseStorage.getInstance();
-        currentUser = FirebaseAuth.getInstance().getCurrentUser().getUid();
-
 
         binding.buttonSignUp.setOnClickListener(view -> doSignup());
         binding.signInButton.setOnClickListener(view -> startActivity(new Intent(this, LoginActivity.class)));
@@ -71,12 +72,31 @@ public class SignUpActivity extends Activity {
             @Override
             public void onLocationResult(@NonNull LocationResult locationResult) {
                 super.onLocationResult(locationResult);
-                Log.i(TAG, "onLocationResult: " + locationResult.getLastLocation().toString());
+                Log.i(TAG, "onLocationResult: " + Objects.requireNonNull(locationResult.getLastLocation()));
                 latitude = locationResult.getLastLocation().getLatitude();
-                longitude =locationResult.getLastLocation().getLongitude();
+                longitude = locationResult.getLastLocation().getLongitude();
             }
         });
 
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK) {
+            switch (requestCode) {
+                case PermissionHelper.PERMISSIONS_REQUEST_CAMERA:
+                    binding.imageContact.setImageURI(cameraService.getPhotoURI());
+                    imageData = cameraService.getPhotoURI();
+                    break;
+
+                case PermissionHelper.PERMISSIONS_REQUEST_GALLERY:
+                    assert data != null;
+                    binding.imageContact.setImageURI(data.getData());
+                    imageData = data.getData();
+                    break;
+            }
+        }
     }
 
     @Override
@@ -111,53 +131,13 @@ public class SignUpActivity extends Activity {
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == PermissionHelper.PERMISSIONS_LOCATION) {
             permissionHelper.getLocationPermission(this);
             if (permissionHelper.isMLocationPermissionGranted()) {
                 locationService.startLocation();
-            }
-        }
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-         StorageReference storageReference = mStorage.getReference(DatabaseRoutes.getImage(currentUser));;
-
-
-        if (resultCode == RESULT_OK) {
-            switch (requestCode) {
-                case PermissionHelper.PERMISSIONS_REQUEST_CAMERA:
-
-                    binding.imageContact.setImageURI(cameraService.getPhotoURI());
-
-                    storageReference.putFile(cameraService.getPhotoURI()).addOnSuccessListener(taskSnapshot -> {
-                        alertsHelper.longSimpleSnackbar(binding.getRoot(), getString(R.string.image_upload_success));
-                        storageReference.getDownloadUrl().addOnSuccessListener(uri -> {
-                        });
-                    }).addOnFailureListener(e -> {
-                        alertsHelper.longSimpleSnackbar(binding.getRoot(), getString(R.string.image_upload_error));
-                        Log.e(TAG, "onActivityResult: ", e);
-                    });
-                    break;
-
-                case PermissionHelper.PERMISSIONS_REQUEST_GALLERY:
-
-                    assert data != null;
-                    binding.imageContact.setImageURI(data.getData());
-
-                    storageReference.putFile(data.getData()).addOnSuccessListener(taskSnapshot -> {
-                        alertsHelper.longSimpleSnackbar(binding.getRoot(), getString(R.string.image_upload_success));
-                        storageReference.getDownloadUrl().addOnSuccessListener(uri -> {
-                        });
-                    }).addOnFailureListener(e -> {
-                        alertsHelper.longSimpleSnackbar(binding.getRoot(), getString(R.string.image_upload_error));
-                        Log.e(TAG, "onActivityResult: ", e);
-                    });
-                    break;
             }
         }
     }
@@ -227,48 +207,53 @@ public class SignUpActivity extends Activity {
         }
 
 
-
         // Crear usuario
-        mAuth.createUserWithEmailAndPassword(email, pass).addOnSuccessListener(authResult -> {
-            Log.i(TAG, "(Success) Firebase user creation");
+        if (imageData != null)
+            mAuth.createUserWithEmailAndPassword(email, pass).addOnSuccessListener(authResult -> {
+                Log.i(TAG, "(Success) Firebase user creation");
 
-            // Añadir información en la base de datos
+                // Añadir información en la base de datos
+                String currentUser = Objects.requireNonNull(authResult.getUser()).getUid();
 
-            try {
+                try {
+                    DatabaseReference reference = mDatabase.getReference(DatabaseRoutes.getUser(
+                            Objects.requireNonNull(currentUser)));
 
-                DatabaseReference reference = mDatabase.getReference(DatabaseRoutes.getUser(
-                        Objects.requireNonNull(currentUser)));
+                    // Create user
+                    UserInfo newUser = new UserInfo(
+                            Objects.requireNonNull(binding.userName.getEditText().getText().toString()),
+                            Objects.requireNonNull(binding.lastname.getEditText().getText().toString()),
+                            Long.parseLong(binding.numId.getEditText().getText().toString()),
+                            latitude,
+                            longitude,
+                            new Date().getTime(),
+                            new Date().getTime());
 
+                    // Save user on Database
+                    reference.setValue(newUser)
+                            .addOnSuccessListener(unused -> {
+                                Log.i(TAG, "(Success) Firebase RTD user details saved");
+                                alertsHelper.shortToast(this, getString(R.string.success_signup));
+                                startActivity(new Intent(SignUpActivity.this, LoginActivity.class));
+                                finish();
+                            })
+                            .addOnFailureListener(e -> alertsHelper.shortSimpleSnackbar(binding.getRoot(), e.getLocalizedMessage()));
 
-                // Create user
-                UserInfo newUser = new UserInfo(
-                        Objects.requireNonNull(binding.userName.getEditText().getText().toString()),
-                        Objects.requireNonNull(binding.lastname.getEditText().getText().toString()),
-                        Objects.requireNonNull(Long.parseLong(binding.numId.getEditText().getText().toString())),
-                        latitude,
-                        longitude,
-                        new Date().getTime(),
-                        new Date().getTime());
+                    StorageReference storageImages = mStorage.getReference(DatabaseRoutes.getImage(currentUser));
+                    storageImages.putFile(imageData)
+                            .addOnSuccessListener(runnable -> Log.i(TAG, "Image saved"))
+                            .addOnFailureListener(runnable -> Log.e(TAG, "Image not saved"));
 
-                // Save user on Database
-                reference.setValue(newUser)
-                        .addOnSuccessListener(unused -> {
-                            Log.i(TAG, "(Success) Firebase RTD user details saved");
-                            alertsHelper.shortToast(this, getString(R.string.success_signup));
-                            startActivity(new Intent(SignUpActivity.this, LoginActivity.class));
-                            finish();
-                        })
-                        .addOnFailureListener(e -> alertsHelper.shortSimpleSnackbar(binding.getRoot(), e.getLocalizedMessage()));
+                } catch (NullPointerException e) {
+                    Log.e(TAG, "(Error) Firebase RTD user creation");
+                    alertsHelper.longSimpleSnackbar(binding.getRoot(), getString(R.string.unknown_error));
+                }
 
-            } catch (NullPointerException e) {
-                Log.e(TAG, "(Error) Firebase RTD user creation");
-                alertsHelper.longSimpleSnackbar(binding.getRoot(), getString(R.string.unknown_error));
-            }
-
-        }).addOnFailureListener(e -> {
-            Log.i(TAG, "(Failure) Firebase");
-            alertsHelper.indefiniteSnackbar(binding.getRoot(), e.getLocalizedMessage());
-        });
+            }).addOnFailureListener(e -> {
+                Log.i(TAG, "(Failure) Firebase");
+                alertsHelper.indefiniteSnackbar(binding.getRoot(), e.getLocalizedMessage());
+            });
+        else alertsHelper.indefiniteSnackbar(binding.getRoot(), "Failed to upload image");
 
         // Mostrar
         super.hideKeyboard();

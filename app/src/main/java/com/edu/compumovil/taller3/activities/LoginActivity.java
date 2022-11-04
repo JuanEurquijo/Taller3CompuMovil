@@ -40,14 +40,13 @@ public class LoginActivity extends Activity {
         binding.buttonLogin.setOnClickListener(view -> doLogin());
         binding.signUpButton.setOnClickListener(view -> startActivity(new Intent(this, SignUpActivity.class)));
         binding.labelForgotPass.setOnClickListener(view -> doPassReset());
-
-
     }
 
 
     public static Intent createIntent(android.app.Activity activity) {
         return new Intent(activity, LoginActivity.class);
     }
+
     private void doLogin() {
         // Variables de pass e email
         String pass, email;
