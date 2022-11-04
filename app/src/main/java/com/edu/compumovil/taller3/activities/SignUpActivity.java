@@ -30,10 +30,10 @@ public class SignUpActivity extends Activity {
     public static final String TAG = SignUpActivity.class.getName();
 
     private ActivitySignUpBinding binding;
-    private FirebaseAuth mAuth;
+    FirebaseAuth mAuth;
     private FirebaseDatabase mDatabase;
     private FirebaseStorage mStorage;
-    private String currentUserID;
+    private String currentUser;
     double latitude;
     double longitude;
 
@@ -47,11 +47,8 @@ public class SignUpActivity extends Activity {
         mAuth = FirebaseAuth.getInstance();
         mDatabase = FirebaseDatabase.getInstance();
         mStorage = FirebaseStorage.getInstance();
+        currentUser = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-        FirebaseUser mFirebaseUser = mAuth.getCurrentUser();
-        if(mFirebaseUser != null) {
-            currentUserID = mFirebaseUser.getUid(); //now you can use this id anywhere else
-        }
 
         binding.buttonSignUp.setOnClickListener(view -> doSignup());
         binding.signInButton.setOnClickListener(view -> startActivity(new Intent(this, LoginActivity.class)));
@@ -128,7 +125,7 @@ public class SignUpActivity extends Activity {
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-         StorageReference storageReference = mStorage.getReference(DatabaseRoutes.getImage(currentUserID));;
+         StorageReference storageReference = mStorage.getReference(DatabaseRoutes.getImage(currentUser));;
 
 
         if (resultCode == RESULT_OK) {
@@ -240,7 +237,7 @@ public class SignUpActivity extends Activity {
             try {
 
                 DatabaseReference reference = mDatabase.getReference(DatabaseRoutes.getUser(
-                        Objects.requireNonNull(authResult.getUser().getUid())));
+                        Objects.requireNonNull(currentUser)));
 
 
                 // Create user
