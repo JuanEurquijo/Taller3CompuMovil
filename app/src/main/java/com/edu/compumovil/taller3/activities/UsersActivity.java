@@ -16,6 +16,7 @@ import com.edu.compumovil.taller3.databinding.ActivityUsersBinding;
 import com.edu.compumovil.taller3.databinding.FragmentMapBinding;
 import com.edu.compumovil.taller3.models.database.DatabaseRoutes;
 import com.edu.compumovil.taller3.models.database.UserInfo;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;

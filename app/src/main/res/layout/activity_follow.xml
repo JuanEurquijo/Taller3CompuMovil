@@ -6,4 +6,10 @@
     android:layout_height="match_parent"
     tools:context=".activities.FollowActivity">
 
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/fragment_follow_container_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:name="com.edu.compumovil.taller3.activities.FollowMapFragment" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

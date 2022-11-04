@@ -4,7 +4,9 @@ package com.edu.compumovil.taller3.adapters;
 import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
+import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,6 +21,7 @@ import androidx.annotation.NonNull;
 import com.bumptech.glide.Glide;
 import com.edu.compumovil.taller3.R;
 import com.edu.compumovil.taller3.activities.Activity;
+import com.edu.compumovil.taller3.activities.FollowActivity;
 import com.edu.compumovil.taller3.databinding.UsersAdapterBinding;
 import com.edu.compumovil.taller3.models.database.DatabaseRoutes;
 import com.edu.compumovil.taller3.models.database.UserInfo;
@@ -54,6 +57,12 @@ public class UsersAdapter extends ArrayAdapter<UserInfo> {
 
         FirebaseStorage.getInstance().getReference(DatabaseRoutes.getImage(user.getImagePath())).getDownloadUrl().addOnSuccessListener(uri -> {
             Glide.with(binding.imageUser).load(uri.toString()).into(binding.imageUser);
+        });
+
+        binding.positionBtn.setOnClickListener(view -> {
+            Intent followIntent = new Intent(getContext(), FollowActivity.class);
+            followIntent.putExtra("user", user.getImagePath());
+            getContext().startActivity(followIntent);
         });
 
         return binding.getRoot();

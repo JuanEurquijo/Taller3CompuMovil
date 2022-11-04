@@ -1,6 +1,9 @@
 package com.edu.compumovil.taller3.dependencies.components;
 
+import androidx.fragment.app.Fragment;
+
 import com.edu.compumovil.taller3.activities.Activity;
+import com.edu.compumovil.taller3.activities.FollowMapFragment;
 import com.edu.compumovil.taller3.activities.MapFragment;
 import com.edu.compumovil.taller3.dependencies.modules.AlertsModule;
 import com.edu.compumovil.taller3.dependencies.modules.CameraModule;
@@ -18,5 +21,7 @@ import dagger.Component;
         LocationModule.class, GeocoderModule.class, GeoInfoModule.class})
 public interface ApplicationComponent {
     void inject(Activity activity);
+
     void inject(MapFragment fragment);
+    void inject(FollowMapFragment fragment);
 }
