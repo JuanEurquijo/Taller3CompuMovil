@@ -27,47 +27,52 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
-public class UsersActivity extends Activity {
+public class UsersActivity extends AuthenticatedActivity {
     public static final String TAG = UsersActivity.class.getName();
     ActivityUsersBinding binding;
-    FirebaseDatabase mDatabase;
-    FirebaseStorage mStorage;
-    StorageReference storageReference;
-    DatabaseReference reference;
+
     ValueEventListener listener;
-    private ArrayList<UserInfo> users = new ArrayList<>();
     UsersAdapter adapter;
-    private ArrayList<String> uuids = new ArrayList<>();
+
+    HashMap<String, UserInfo> users = new HashMap<>();
+    ArrayList<UserInfo> userInformation = new ArrayList<>();
+
     private FirebaseUser currentUser;
     private Uri profilePictureUri;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Inflate
         super.onCreate(savedInstanceState);
         binding = ActivityUsersBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-
-        mDatabase = FirebaseDatabase.getInstance();
-        mStorage = FirebaseStorage.getInstance();
-        reference = mDatabase.getReference(DatabaseRoutes.USERS_PATH);
-        storageReference = mStorage.getReference();
-
+        // Create on DatabaseData change listener
         listener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    // For every child
                     snapshot.getChildren().forEach(dataSnapshot -> {
-                        UserInfo tmpUsr = dataSnapshot.getValue(UserInfo.class);
+                        // Get information
+                        UserInfo userinfo = dataSnapshot.getValue(UserInfo.class);
                         String uuid = dataSnapshot.getRef().getKey();
-                            if(!uuids.contains(uuid)){
-                                users.add(new UserInfo(tmpUsr.getName(), tmpUsr.getLastname(), storageReference.child("profileImages/" + uuid).getDownloadUrl().toString()));
-                                uuids.add(uuid);
-                            }
+
+                        // Append or update information
+                        if (userinfo != null && userinfo.isAvailable()) {
+                            userinfo.imagePath = uuid;
+                            users.put(uuid, userinfo);
+                        }
                     });
                 }
+
+                userInformation.clear();
+                userInformation.addAll(users.values());
                 adapter.notifyDataSetChanged();
             }
 
@@ -77,19 +82,19 @@ public class UsersActivity extends Activity {
             }
         };
 
-        adapter = new UsersAdapter(this, users);
+        adapter = new UsersAdapter(this, userInformation);
         binding.usersList.setAdapter(adapter);
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        reference.addValueEventListener(listener);
+        mDatabase.getReference(DatabaseRoutes.USERS_PATH).addValueEventListener(listener);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        reference.removeEventListener(listener);
+        mDatabase.getReference(DatabaseRoutes.USERS_PATH).removeEventListener(listener);
     }
 }

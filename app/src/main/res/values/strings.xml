@@ -34,5 +34,6 @@
     <string name="image_upload_error">La imágen no ha podido ser cargada</string>
     <string name="uploading">Actualizando datos, espere por favor</string>
     <string name="textSignOut">¿Deseas cerrar tu sesión?</string>
+    <string name="user_list">Listado de usuarios activos:</string>
 
 </resources>

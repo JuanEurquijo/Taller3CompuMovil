@@ -2,29 +2,36 @@ package com.edu.compumovil.taller3.activities;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
-import androidx.core.view.MenuProvider;
-import androidx.lifecycle.Lifecycle;
 
-import android.content.DialogInterface;
+import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 
 import com.edu.compumovil.taller3.App;
 import com.edu.compumovil.taller3.R;
 import com.edu.compumovil.taller3.databinding.ActivityMapBinding;
+import com.edu.compumovil.taller3.models.database.DatabaseRoutes;
 import com.edu.compumovil.taller3.utils.PermissionHelper;
 import com.google.android.gms.location.LocationAvailability;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationResult;
-import com.google.firebase.auth.FirebaseAuth;
+
+import java.util.Objects;
+import java.util.function.Function;
 
 public class MapActivity extends AuthenticatedActivity {
 
     public static final String TAG = MapActivity.class.getName();
     private ActivityMapBinding binding;
+
+    MapFragment fragment = null;
+
+    boolean userIsActive = false;
+    Function<Boolean, Boolean> userAvailabilityCallback = (userActive -> {
+        userIsActive = userActive;
+        setUserState(userActive);
+        return userActive;
+    });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,13 +49,17 @@ public class MapActivity extends AuthenticatedActivity {
             @Override
             public void onLocationResult(@NonNull LocationResult locationResult) {
                 super.onLocationResult(locationResult);
-                Log.i(TAG, "onLocationResult: " + locationResult.getLastLocation().toString());
-                MapFragment fragment = binding.fragmentContainerView.getFragment();
+                Log.i(TAG, "onLocationResult: " + Objects.requireNonNull(locationResult.getLastLocation()));
+                fragment = binding.fragmentContainerView.getFragment();
                 fragment.updateUserPositionOnMap(locationResult);
+                fragment.onUserActiveCallback(userAvailabilityCallback);
+
+                // Update location
+                Location location = locationResult.getLastLocation();
+                mDatabase.getReference(DatabaseRoutes.getUser(currentUser.getUid())).child("latitude").setValue(location.getLatitude());
+                mDatabase.getReference(DatabaseRoutes.getUser(currentUser.getUid())).child("longitude").setValue(location.getLongitude());
             }
         });
-
-
     }
 
     @Override
@@ -58,12 +69,31 @@ public class MapActivity extends AuthenticatedActivity {
         if (permissionHelper.isMLocationPermissionGranted()) {
             locationService.startLocation();
         }
+
+        if (userIsActive)
+            setUserState(true);
+    }
+
+    protected void setUserState(boolean active) {
+        if (active) {
+            alertsHelper.shortToast(this, "Usuario activo");
+            mDatabase.getReference(DatabaseRoutes.getUser(currentUser.getUid())).child("available").setValue(true);
+        } else {
+            alertsHelper.shortToast(this, "Usuario inactivo");
+            mDatabase.getReference(DatabaseRoutes.getUser(currentUser.getUid())).child("available").setValue(false);
+        }
     }
 
     @Override
     protected void onStop() {
         super.onStop();
         locationService.stopLocation();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        setUserState(false);
     }
 
     @Override
@@ -78,25 +108,21 @@ public class MapActivity extends AuthenticatedActivity {
     }
 
     @Override
+    protected void signOut() {
+        fragment.beforeDestruction();
+        setUserState(false);
+        super.signOut();
+    }
+
+    @Override
     public void onBackPressed() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
         builder.setTitle("Cerrar Sesión");
         builder.setMessage(R.string.textSignOut);
 
-        builder.setPositiveButton("SI", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                signOut();
-            }
-        });
-
-        builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
+        builder.setPositiveButton("SI", (dialog, which) -> signOut());
+        builder.setNegativeButton("NO", (dialog, which) -> dialog.dismiss());
 
         builder.create();
         builder.show();

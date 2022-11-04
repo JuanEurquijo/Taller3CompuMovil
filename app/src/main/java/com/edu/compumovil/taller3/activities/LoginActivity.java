@@ -9,13 +9,16 @@ import android.util.Log;
 
 import com.edu.compumovil.taller3.R;
 import com.edu.compumovil.taller3.databinding.ActivityLoginBinding;
+import com.edu.compumovil.taller3.models.database.DatabaseRoutes;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.FirebaseDatabase;
 
+import java.util.Date;
 import java.util.Objects;
 
 public class LoginActivity extends Activity {
@@ -80,6 +83,7 @@ public class LoginActivity extends Activity {
                 .addOnSuccessListener(authResult -> {
                     Log.i(TAG, "(Success) Authentication");
                     alertsHelper.shortToast(this, getString(R.string.success_login));
+                    FirebaseDatabase.getInstance().getReference(DatabaseRoutes.getUser(mAuth.getUid())).child("lastLogin").setValue(new Date().getTime());
                     startActivity(new Intent(LoginActivity.this, MapActivity.class));
                 })
                 .addOnFailureListener(e -> {

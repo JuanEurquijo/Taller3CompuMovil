@@ -5,6 +5,7 @@ import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOption
 
 import android.content.Context;
 import android.net.Uri;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +20,7 @@ import com.bumptech.glide.Glide;
 import com.edu.compumovil.taller3.R;
 import com.edu.compumovil.taller3.activities.Activity;
 import com.edu.compumovil.taller3.databinding.UsersAdapterBinding;
+import com.edu.compumovil.taller3.models.database.DatabaseRoutes;
 import com.edu.compumovil.taller3.models.database.UserInfo;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -31,7 +33,6 @@ import java.util.List;
 
 public class UsersAdapter extends ArrayAdapter<UserInfo> {
 
-
     public UsersAdapter(@NonNull Context context, @NonNull List<UserInfo> data) {
         super(context, 0, data);
     }
@@ -43,17 +44,23 @@ public class UsersAdapter extends ArrayAdapter<UserInfo> {
         UserInfo user = getItem(position);
 
         if (convertView == null) {
-            binding = UsersAdapterBinding.inflate(LayoutInflater.from(parent.getContext()),parent, false);
+            binding = UsersAdapterBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
         } else {
             binding = UsersAdapterBinding.bind(convertView);
         }
 
-        binding.userName.setText(user.getName() + " " + user.getLastname());
+        binding.userName.setText(String.format("%s %s", user.getName(), user.getLastname()));
         binding.imageUser.setVisibility(View.VISIBLE);
-       // Glide.with(this.activity)
-          //      .load(user.getImagePath())
-            //    .into(binding.imageUser);
+
+        FirebaseStorage.getInstance().getReference(DatabaseRoutes.getImage(user.getImagePath())).getDownloadUrl().addOnSuccessListener(uri -> {
+            Glide.with(binding.imageUser).load(uri.toString()).into(binding.imageUser);
+        });
 
         return binding.getRoot();
+    }
+
+    @Override
+    public void notifyDataSetChanged() {
+        super.notifyDataSetChanged();
     }
 }

@@ -6,6 +6,15 @@
     android:layout_height="match_parent"
     tools:context=".activities.UsersActivity">
 
+    <TextView
+        android:id="@+id/usersListTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="@string/user_list"
+        android:textSize="25sp"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <ListView
         android:id="@+id/usersList"
         android:layout_width="match_parent"
@@ -13,5 +22,6 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/usersListTitle" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

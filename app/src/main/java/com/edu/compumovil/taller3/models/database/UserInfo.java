@@ -2,6 +2,8 @@ package com.edu.compumovil.taller3.models.database;
 
 import android.net.Uri;
 
+import androidx.annotation.NonNull;
+
 import com.google.android.gms.maps.model.LatLng;
 
 import lombok.AllArgsConstructor;
@@ -17,7 +19,7 @@ public class UserInfo {
     private String name;
     private String lastname;
     private boolean available;
-    private String imagePath;
+    public String imagePath;
     private long numId;
     private double latitude;
     private double longitude;
@@ -38,5 +40,21 @@ public class UserInfo {
         this.imagePath = imagePath;
         this.name = name;
         this.lastname = lastname;
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return "UserInfo{" +
+                "name='" + name + '\'' +
+                ", lastname='" + lastname + '\'' +
+                ", available=" + available +
+                ", imagePath='" + imagePath + '\'' +
+                ", numId=" + numId +
+                ", latitude=" + latitude +
+                ", longitude=" + longitude +
+                ", createdAt=" + createdAt +
+                ", lastLogin=" + lastLogin +
+                '}';
     }
 }

@@ -62,6 +62,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 
 import javax.inject.Inject;
 
@@ -75,19 +76,21 @@ public class MapFragment extends Fragment {
     @Inject
     GeoInfoFromJsonService geoInfoFromJsonService;
 
-    FragmentMapBinding binding;
+    protected FragmentMapBinding binding;
 
     //Map interaction variables
     static final int INITIAL_ZOOM_LEVEL = 18;
-    GoogleMap googleMap;
-    Marker userPosition;
-    Polyline userRoute;
-    boolean init = false;
+    protected GoogleMap googleMap;
+    protected Marker userPosition;
+    protected Polyline userRoute;
+    protected boolean init = false;
 
     //light sensor
-    SensorManager sensorManager;
-    Sensor lightSensor;
-    SensorEventListener lightSensorEventListener;
+    protected SensorManager sensorManager;
+    protected Sensor lightSensor;
+    protected SensorEventListener lightSensorEventListener;
+
+    protected Function<Boolean, Boolean> userAvailabilityCallback;
 
     private final OnMapReadyCallback callback = new OnMapReadyCallback() {
         @Override
@@ -140,9 +143,13 @@ public class MapFragment extends Fragment {
             case R.id.status:
                 if (!item.isChecked()) {
                     item.setChecked(true);
-                    alertsHelper.shortToast(getContext(), "Disponible");
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        userAvailabilityCallback.apply(true);
+                    }
                 } else {
-                    alertsHelper.shortToast(getContext(), "No disponible");
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                        userAvailabilityCallback.apply(false);
+                    }
                     item.setChecked(false);
                 }
                 break;
@@ -150,9 +157,13 @@ public class MapFragment extends Fragment {
                 startActivity(new Intent(getContext(), UsersActivity.class));
                 break;
         }
+
         return super.onOptionsItemSelected(item);
     }
 
+    public void beforeDestruction() {
+        sensorManager.unregisterListener(lightSensorEventListener);
+    }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
@@ -169,14 +180,18 @@ public class MapFragment extends Fragment {
         lightSensorEventListener = new SensorEventListener() {
             @Override
             public void onSensorChanged(@NotNull SensorEvent sensorEvent) {
-                if (googleMap != null)
-                    if (sensorEvent.values[0] > 150) {
+
+                if (sensorEvent.values[0] > 150) {
+                    if (userRoute != null)
                         userRoute.setColor(R.color.light_blue_400);
+                    if (googleMap != null)
                         googleMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(requireContext(), R.raw.map_day_style));
-                    } else {
+                } else {
+                    if (userRoute != null)
                         userRoute.setColor(R.color.light_blue_100);
+                    if (googleMap != null)
                         googleMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(requireContext(), R.raw.map_night_style));
-                    }
+                }
             }
 
             @Override
@@ -196,6 +211,7 @@ public class MapFragment extends Fragment {
     @Override
     public void onStop() {
         super.onStop();
+        sensorManager.unregisterListener(lightSensorEventListener);
     }
 
     public void updateUserPositionOnMap(@NotNull LocationResult locationResult) {
@@ -211,6 +227,10 @@ public class MapFragment extends Fragment {
         }
         userPosition.setPosition(new LatLng(locationResult.getLastLocation().getLatitude(), locationResult.getLastLocation().getLongitude()));
 
+    }
+
+    public void onUserActiveCallback(Function<Boolean, Boolean> userAvailabilityCallback) {
+        this.userAvailabilityCallback = userAvailabilityCallback;
     }
 
     private void loadGeoInfo() {
