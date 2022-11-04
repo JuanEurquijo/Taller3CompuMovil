@@ -82,7 +82,6 @@ public class MapFragment extends Fragment{
     Marker userPosition;
     Polyline userRoute;
     boolean init = false;
-    boolean available = false;
 
     //light sensor
     SensorManager sensorManager;

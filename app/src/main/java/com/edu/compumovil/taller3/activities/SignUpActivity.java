@@ -17,6 +17,7 @@ import com.google.android.gms.location.LocationAvailability;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
@@ -29,9 +30,10 @@ public class SignUpActivity extends Activity {
     public static final String TAG = SignUpActivity.class.getName();
 
     private ActivitySignUpBinding binding;
-    FirebaseAuth mAuth;
+    private FirebaseAuth mAuth;
     private FirebaseDatabase mDatabase;
     private FirebaseStorage mStorage;
+    private String currentUserID;
     double latitude;
     double longitude;
 
@@ -46,6 +48,10 @@ public class SignUpActivity extends Activity {
         mDatabase = FirebaseDatabase.getInstance();
         mStorage = FirebaseStorage.getInstance();
 
+        FirebaseUser mFirebaseUser = mAuth.getCurrentUser();
+        if(mFirebaseUser != null) {
+            currentUserID = mFirebaseUser.getUid(); //now you can use this id anywhere else
+        }
 
         binding.buttonSignUp.setOnClickListener(view -> doSignup());
         binding.signInButton.setOnClickListener(view -> startActivity(new Intent(this, LoginActivity.class)));
@@ -122,17 +128,18 @@ public class SignUpActivity extends Activity {
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
+         StorageReference storageReference = mStorage.getReference(DatabaseRoutes.getImage(currentUserID));;
+
 
         if (resultCode == RESULT_OK) {
             switch (requestCode) {
                 case PermissionHelper.PERMISSIONS_REQUEST_CAMERA:
 
                     binding.imageContact.setImageURI(cameraService.getPhotoURI());
-                    StorageReference mStorageReferenceCam = mStorage.getReference(DatabaseRoutes.getImage(mAuth.getCurrentUser().getUid()));
 
-                    mStorageReferenceCam.putFile(cameraService.getPhotoURI()).addOnSuccessListener(taskSnapshot -> {
+                    storageReference.putFile(cameraService.getPhotoURI()).addOnSuccessListener(taskSnapshot -> {
                         alertsHelper.longSimpleSnackbar(binding.getRoot(), getString(R.string.image_upload_success));
-                        mStorageReferenceCam.getDownloadUrl().addOnSuccessListener(uri -> {
+                        storageReference.getDownloadUrl().addOnSuccessListener(uri -> {
                         });
                     }).addOnFailureListener(e -> {
                         alertsHelper.longSimpleSnackbar(binding.getRoot(), getString(R.string.image_upload_error));
@@ -144,11 +151,10 @@ public class SignUpActivity extends Activity {
 
                     assert data != null;
                     binding.imageContact.setImageURI(data.getData());
-                    StorageReference mStorageReferenceGal = mStorage.getReference(DatabaseRoutes.getImage(Objects.requireNonNull(mAuth.getCurrentUser()).getUid()));
 
-                    mStorageReferenceGal.putFile(data.getData()).addOnSuccessListener(taskSnapshot -> {
+                    storageReference.putFile(data.getData()).addOnSuccessListener(taskSnapshot -> {
                         alertsHelper.longSimpleSnackbar(binding.getRoot(), getString(R.string.image_upload_success));
-                        mStorageReferenceGal.getDownloadUrl().addOnSuccessListener(uri -> {
+                        storageReference.getDownloadUrl().addOnSuccessListener(uri -> {
                         });
                     }).addOnFailureListener(e -> {
                         alertsHelper.longSimpleSnackbar(binding.getRoot(), getString(R.string.image_upload_error));
@@ -234,7 +240,8 @@ public class SignUpActivity extends Activity {
             try {
 
                 DatabaseReference reference = mDatabase.getReference(DatabaseRoutes.getUser(
-                        Objects.requireNonNull(authResult.getUser()).getUid()));
+                        Objects.requireNonNull(authResult.getUser().getUid())));
+
 
                 // Create user
                 UserInfo newUser = new UserInfo(

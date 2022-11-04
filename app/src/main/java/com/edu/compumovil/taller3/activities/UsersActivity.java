@@ -33,6 +33,8 @@ public class UsersActivity extends Activity {
     public static final String TAG = UsersActivity.class.getName();
     ActivityUsersBinding binding;
     FirebaseDatabase mDatabase;
+    FirebaseStorage mStorage;
+    StorageReference storageReference;
     DatabaseReference reference;
     ValueEventListener listener;
     private ArrayList<UserInfo> users = new ArrayList<>();
@@ -49,7 +51,10 @@ public class UsersActivity extends Activity {
 
 
         mDatabase = FirebaseDatabase.getInstance();
+        mStorage = FirebaseStorage.getInstance();
         reference = mDatabase.getReference(DatabaseRoutes.USERS_PATH);
+        storageReference = mStorage.getReference();
+
         listener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -57,13 +62,10 @@ public class UsersActivity extends Activity {
                     snapshot.getChildren().forEach(dataSnapshot -> {
                         UserInfo tmpUsr = dataSnapshot.getValue(UserInfo.class);
                         String uuid = dataSnapshot.getRef().getKey();
-                        currentUser = FirebaseAuth.getInstance().getCurrentUser();
-
                             if(!uuids.contains(uuid)){
-                                users.add(new UserInfo(tmpUsr.getName(), tmpUsr.getLastname()));
+                                users.add(new UserInfo(tmpUsr.getName(), tmpUsr.getLastname(), storageReference.child("profileImages/" + uuid).getDownloadUrl().toString()));
                                 uuids.add(uuid);
                             }
-
                     });
                 }
                 adapter.notifyDataSetChanged();

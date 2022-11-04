@@ -1,14 +1,19 @@
 package com.edu.compumovil.taller3.adapters;
 
 
+import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
+
 import android.content.Context;
 import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
 
 import com.bumptech.glide.Glide;
 import com.edu.compumovil.taller3.R;
@@ -21,48 +26,34 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
 import java.util.ArrayList;
+import java.util.List;
 
 
-public class UsersAdapter extends BaseAdapter {
-
-    protected Activity activity;
-    protected ArrayList<UserInfo> items;
+public class UsersAdapter extends ArrayAdapter<UserInfo> {
 
 
-    public UsersAdapter(Activity activity, ArrayList<UserInfo> items) {
-        this.activity = activity;
-        this.items = items;
-    }
-
-    @Override
-    public int getCount() {
-        return items.size();
-    }
-
-    @Override
-    public Object getItem(int position) {
-        return items.get(position);
-    }
-
-    @Override
-    public long getItemId(int position) {
-        return items.get(position).getNumId();
+    public UsersAdapter(@NonNull Context context, @NonNull List<UserInfo> data) {
+        super(context, 0, data);
     }
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        if(convertView == null){
-           LayoutInflater inflater = (LayoutInflater) activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-           convertView = inflater.inflate(R.layout.users_adapter, null);
 
+        UsersAdapterBinding binding;
+        UserInfo user = getItem(position);
+
+        if (convertView == null) {
+            binding = UsersAdapterBinding.inflate(LayoutInflater.from(parent.getContext()),parent, false);
+        } else {
+            binding = UsersAdapterBinding.bind(convertView);
         }
-        UserInfo user = items.get(position);
 
-        ImageView uri = (ImageView) convertView.findViewById(R.id.imageUser);
-        uri.setImageURI(user.getImage());
-        TextView text = (TextView) convertView.findViewById(R.id.userName);
-        text.setText(user.getName() + " " + user.getLastname());
+        binding.userName.setText(user.getName() + " " + user.getLastname());
+        binding.imageUser.setVisibility(View.VISIBLE);
+       // Glide.with(this.activity)
+          //      .load(user.getImagePath())
+            //    .into(binding.imageUser);
 
-        return convertView;
+        return binding.getRoot();
     }
 }

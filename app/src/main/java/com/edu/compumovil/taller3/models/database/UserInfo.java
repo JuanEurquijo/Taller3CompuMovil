@@ -14,9 +14,10 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserInfo {
-    private Uri image;
     private String name;
     private String lastname;
+    private boolean available;
+    private String imagePath;
     private long numId;
     private double latitude;
     private double longitude;
@@ -33,7 +34,8 @@ public class UserInfo {
         this.lastLogin = lastLogin;
     }
 
-    public UserInfo(String name, String lastname) {
+    public UserInfo(String name, String lastname, String imagePath) {
+        this.imagePath = imagePath;
         this.name = name;
         this.lastname = lastname;
     }
