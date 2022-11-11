@@ -12,16 +12,22 @@ import com.edu.compumovil.taller3.App;
 import com.edu.compumovil.taller3.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
 
-public class AuthenticatedActivity extends Activity{
+public class AuthenticatedActivity extends Activity {
 
     protected FirebaseUser currentUser;
+    protected FirebaseDatabase mDatabase;
+    protected FirebaseStorage mStorage;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         ((App) getApplicationContext()).getAppComponent().inject(this);
         super.onCreate(savedInstanceState);
         currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        mDatabase = FirebaseDatabase.getInstance();
+        mStorage = FirebaseStorage.getInstance();
     }
 
     protected boolean isAuthenticated() {
@@ -36,25 +42,9 @@ public class AuthenticatedActivity extends Activity{
         }
     }
 
-    protected void signOut(){
+    protected void signOut() {
         FirebaseAuth.getInstance().signOut();
         startActivity(LoginActivity.createIntent(this));
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main_menu, menu);
-        return super.onCreateOptionsMenu(menu);
-    }
-
-    @SuppressLint("NonConstantResourceId")
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        switch(item.getItemId()){
-            case R.id.logoutButton:
-                signOut();
-                break;
-        }
-        return super.onOptionsItemSelected(item);
-    }
 }

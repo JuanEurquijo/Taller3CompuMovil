@@ -9,13 +9,16 @@ import android.util.Log;
 
 import com.edu.compumovil.taller3.R;
 import com.edu.compumovil.taller3.databinding.ActivityLoginBinding;
+import com.edu.compumovil.taller3.models.database.DatabaseRoutes;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.FirebaseDatabase;
 
+import java.util.Date;
 import java.util.Objects;
 
 public class LoginActivity extends Activity {
@@ -40,14 +43,13 @@ public class LoginActivity extends Activity {
         binding.buttonLogin.setOnClickListener(view -> doLogin());
         binding.signUpButton.setOnClickListener(view -> startActivity(new Intent(this, SignUpActivity.class)));
         binding.labelForgotPass.setOnClickListener(view -> doPassReset());
-
-
     }
 
 
     public static Intent createIntent(android.app.Activity activity) {
         return new Intent(activity, LoginActivity.class);
     }
+
     private void doLogin() {
         // Variables de pass e email
         String pass, email;
@@ -81,7 +83,8 @@ public class LoginActivity extends Activity {
                 .addOnSuccessListener(authResult -> {
                     Log.i(TAG, "(Success) Authentication");
                     alertsHelper.shortToast(this, getString(R.string.success_login));
-                    startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                    FirebaseDatabase.getInstance().getReference(DatabaseRoutes.getUser(mAuth.getUid())).child("lastLogin").setValue(new Date().getTime());
+                    startActivity(new Intent(LoginActivity.this, MapActivity.class));
                 })
                 .addOnFailureListener(e -> {
                     Log.i(TAG, "(Failure) Authentication");

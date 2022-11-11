@@ -8,7 +8,9 @@
     <string name="new_account_string">¿Aún no tienes cuenta?</string>
     <string name="exists_account_string">¿Ya tienes cuenta?</string>
     <string name="sign_up_string">Regístrate</string>
-    <string name="logout_menu_item">LogOut</string>
+    <string name="logout_menu_item">Cerrar Sesión</string>
+    <string name="status_menu_item">Estado</string>
+    <string name="available_users_menu_item">Usuarios Disponibles</string>
     <string name="mail_error_label">El email no puede estar vacio.</string>
     <string name="error_pass_label">El password no puede estar vacio.</string>
     <string name="name_error_label">El nombre no puede estar vacio.</string>
@@ -31,5 +33,7 @@
     <string name="image_upload_success">Imágen cargada con éxito</string>
     <string name="image_upload_error">La imágen no ha podido ser cargada</string>
     <string name="uploading">Actualizando datos, espere por favor</string>
+    <string name="textSignOut">¿Deseas cerrar tu sesión?</string>
+    <string name="user_list">Listado de usuarios activos:</string>
 
 </resources>
