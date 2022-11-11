@@ -2,6 +2,10 @@ package com.edu.compumovil.taller3.activities;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkManager;
+import androidx.work.WorkRequest;
 
 import android.location.Location;
 import android.os.Bundle;
@@ -11,12 +15,14 @@ import com.edu.compumovil.taller3.App;
 import com.edu.compumovil.taller3.R;
 import com.edu.compumovil.taller3.databinding.ActivityMapBinding;
 import com.edu.compumovil.taller3.models.database.DatabaseRoutes;
+import com.edu.compumovil.taller3.services.NotificationWorker;
 import com.edu.compumovil.taller3.utils.PermissionHelper;
 import com.google.android.gms.location.LocationAvailability;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationResult;
 
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 public class MapActivity extends AuthenticatedActivity {
@@ -35,11 +41,13 @@ public class MapActivity extends AuthenticatedActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Create the view
         super.onCreate(savedInstanceState);
         ((App) getApplicationContext()).getAppComponent().inject(this);
         binding = ActivityMapBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        // Set location callback
         locationService.setLocationCallback(new LocationCallback() {
             @Override
             public void onLocationAvailability(@NonNull LocationAvailability locationAvailability) {
@@ -60,6 +68,11 @@ public class MapActivity extends AuthenticatedActivity {
                 mDatabase.getReference(DatabaseRoutes.getUser(currentUser.getUid())).child("longitude").setValue(location.getLongitude());
             }
         });
+
+        // Create worker
+        WorkRequest seekActiveUsersRequest = new OneTimeWorkRequest.Builder(NotificationWorker.class).build();
+        WorkManager.getInstance(this).enqueue(seekActiveUsersRequest);
+        Log.d(TAG, "Starting notification worker");
     }
 
     @Override
